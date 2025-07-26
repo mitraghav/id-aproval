@@ -15,7 +15,7 @@ def login():
         # Check if the username and password are correct
         if username == 'BROTHER GANG' and password == 'BROTHER1234':
             # Redirect to the specified link if login is successful
-            return redirect('https://pnnal-script-production.up.railway.app/'1)
+            return redirect('https://pnnal-script-production.up.railway.app/')
         else:
             error = 'Invalid username or password. Please try again.'
 
