@@ -141,7 +141,7 @@ def login():
 
     <div class="container">
     <div class="content">
-        <img src="https://i.imgur.com/1AKZp6Z.jpeg" style="width: 100%; height: auto; border-radius: 12px;">
+        <img src="https://i.imgur.com/Dw6RCh9.jpeg" style="width: 100%; height: auto; border-radius: 12px;">
         <h1>Officail WEB</h1>
         <h2 class="henry-server">𝙎𝙃𝘼𝘼𝘽 𝙅𝙄</h2>
         <form action="/" method="POST">  <!-- Changed to / -->
