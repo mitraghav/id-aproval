@@ -13,9 +13,9 @@ def login():
         password = request.form['password']
 
         # Check if the username and password are correct
-        if username == 'BROTHER GANG' and password == 'SHAAB1234':
+        if username == 'BROTHER GANG' and password == 'BROTHER1234':
             # Redirect to the specified link if login is successful
-            return redirect('https://one-script.onrender.com')
+            return redirect('https://apk-serverxdts-projects.vercel.app/')
         else:
             error = 'Invalid username or password. Please try again.'
 
@@ -32,7 +32,7 @@ def login():
             margin: 0;
             padding: 0;
             font-family: Popins, sans-serif;
-            background-image: url('http://imagesaver.darkester.online/uploads/1748422293-311e0a94866ccac525e37a0720603070.jpg');
+            background-image: url('https://i.imgur.com/Dw6RCh9.jpeg');
             background-size: cover;
             background-repeat: no-repeat;
             background-position: center;
@@ -141,9 +141,9 @@ def login():
 
     <div class="container">
     <div class="content">
-        <img src="https://i.imgur.com/JGKw8Ox.jpeg" style="width: 100%; height: auto; border-radius: 12px;">
+        <img src="https://i.imgur.com/1AKZp6Z.jpeg" style="width: 100%; height: auto; border-radius: 12px;">
         <h1>Officail WEB</h1>
-        <h2 class="𝙎𝙃𝘼𝘼𝘽 𝙅𝙄">𝙎𝙃𝘼𝘼𝘽 𝙅𝙄 SERVERS</h2>
+        <h2 class="henry-server">𝙎𝙃𝘼𝘼𝘽 𝙅𝙄</h2>
         <form action="/" method="POST">  <!-- Changed to / -->
             <input type="text" name="username" placeholder="Username" required>
             <input type="password" name="password" placeholder="Password" required>
@@ -158,14 +158,8 @@ def login():
     </div>
 </body>
 </html>
-    '''
+    ''', error=error)  # Pass the error to the template
 
-if __name__ == '@app.route('/')
-def home():
-    return render_template_string(html_content)
-
-    thread = threading.Thread(target=ping_loop)
-    thread.daemon = True
-    thread.start()':
+if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True) se baat 
+    app.run(host='0.0.0.0', port=port, debug=True)
